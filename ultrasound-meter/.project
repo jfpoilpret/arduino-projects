@@ -84,9 +84,19 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>DisplayDriver</name>
+			<type>2</type>
+			<locationURI>PivateLibPath/DisplayDriver</locationURI>
+		</link>
+		<link>
 			<name>LedControl</name>
 			<type>2</type>
 			<locationURI>PivateLibPath/LedControl</locationURI>
+		</link>
+		<link>
+			<name>UltraSonicSensor</name>
+			<type>2</type>
+			<locationURI>PivateLibPath/UltraSonicSensor</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

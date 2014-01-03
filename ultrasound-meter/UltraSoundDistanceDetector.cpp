@@ -17,6 +17,7 @@
  *
  * 1. change UltraSoundDistanceDetector.cpp (this file) into UltraSoundDistanceDetector.ino
  * 2. remove the line #include "UltraSoundDistanceDetector.h" below
+ * 3. add the line #include <LedControl.h> at the beginning
  */
 
 // Do not remove the include below
@@ -58,7 +59,7 @@ void loop()
 	static unsigned int last_dist = 0xFFFF;
 	// Read and calculate distance from sensor
 	unsigned int dist = sensor.getDistanceInCm();
-	if (last_dist != dist) {
+	if (dist != 0 && last_dist != dist) {
 		last_dist = dist;
 		display.displayValue(dist);
 	}
