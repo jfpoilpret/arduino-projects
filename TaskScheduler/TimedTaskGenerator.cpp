@@ -16,7 +16,7 @@
 #define PRESCALING 128
 #define TIMER_COUNTER (F_CPU / PRESCALING / TIMER_FREQUENCY - 1)
 
-static volatile uint32_t milliseconds = 0;
+static volatile uint32_t _milliseconds = 0;
 static TimedTaskGenerator* _timedTaskGenerator = 0;
 
 void TimedTaskGenerator::initTimer()
@@ -62,10 +62,10 @@ void TimedTaskGenerator::addPeriodicTask(Task* task, uint16_t period, uint32_t w
 		volatile TimedTask& entry = _tasks[i];
 		if (entry.task == 0)
 		{
+			// First available task in tasks array, set it
 			entry.task = task;
-			entry.when = milliseconds + when;
+			entry.when = _milliseconds + when;
 			entry.period = period;
-			_nextTime = min(_nextTime, entry.when);
 			return;
 		}
 	}
@@ -92,26 +92,21 @@ void TimedTaskGenerator::removeTask(Task* task)
 //TODO Optimization needed: find the next time one task must run
 void TimedTaskGenerator::launchIfNeeded(uint32_t ms)
 {
-//	if (ms >= _nextTime)
+	for (uint8_t i = 0; i < _maxTasks; i++)
 	{
-		_nextTime = 0xFFFFFFFF;
-		for (uint8_t i = 0; i < _maxTasks; i++)
+		volatile TimedTask& entry = _tasks[i];
+		if (entry.task != 0)
 		{
-			volatile TimedTask& entry = _tasks[i];
-			if (entry.task != 0)
+			if (entry.when <= ms)
 			{
-				if (entry.when <= ms)
+				_taskManager.pushTaskImmediate(entry.task);
+				if (entry.period == 0)
 				{
-					_taskManager.pushTaskImmediate(entry.task);
-					if (entry.period == 0)
-					{
-						entry.task = 0;
-						--_numTasks;
-					}
-					else
-						entry.when += entry.period;
+					entry.task = 0;
+					--_numTasks;
 				}
-				_nextTime = min(_nextTime, entry.when);
+				else
+					entry.when += entry.period;
 			}
 		}
 	}
@@ -125,6 +120,6 @@ void updateTime(uint32_t ms)
 // Attach interrupt routine to the Timer Compare Interrupt
 ISR(TIMER2_COMPA_vect)
 {
-	milliseconds++;
-	updateTime(milliseconds);
+	_milliseconds++;
+	updateTime(_milliseconds);
 }

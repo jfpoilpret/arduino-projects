@@ -21,8 +21,7 @@ public:
 	TimedTaskGenerator(TaskManager& taskManager, uint8_t maxTasks)
 		:	_taskManager(taskManager),
 		 	_maxTasks(MAX_TIMED_TASKS),
-		 	_numTasks(0),
-		 	_nextTime(0xFFFFFFFF)
+		 	_numTasks(0)
 	{
 	}
 	~TimedTaskGenerator();
@@ -48,7 +47,6 @@ private:
 	const uint8_t _maxTasks;
 	volatile uint8_t _numTasks;
 	volatile TimedTask _tasks[MAX_TIMED_TASKS];
-	volatile uint32_t _nextTime;
 
 	friend void updateTime(uint32_t);
 };
