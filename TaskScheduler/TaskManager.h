@@ -57,7 +57,6 @@ public:
 private:
 	struct RunnableTask
 	{
-		RunnableTask():id(-1), task(0) {}
 		RunnableTask(int8_t id, Task* task):id(id), task(task) {}
 		int8_t id;
 		Task* task;
@@ -70,7 +69,7 @@ private:
 	const uint8_t _maxTasks;
 	uint8_t _numTasks;
 	TaskConfig _tasks[MAX_TASKS];
-	RunnableTask _runnableTasks[MAX_TASKS];
+	Task* _runnableTasks[MAX_TASKS];
 
 	static RunnableTask NO_TASK;
 	static TaskConfig EMPTY_TASK;

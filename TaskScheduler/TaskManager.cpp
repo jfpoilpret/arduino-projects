@@ -21,7 +21,7 @@ static TaskManager* _taskManager = 0;
 
 // Utility variables to optimize code
 TaskConfig TaskManager::EMPTY_TASK;
-TaskManager::RunnableTask TaskManager::NO_TASK;
+TaskManager::RunnableTask TaskManager::NO_TASK(0, 0);
 
 void TaskManager::initTimer()
 {
@@ -126,11 +126,11 @@ TaskManager::RunnableTask TaskManager::nextRunnableTask()
 	ClearInterrupt();
 	for (uint8_t i = 0; i < _maxTasks; i++)
 	{
-		if (_runnableTasks[i].task != 0)
+		if (_runnableTasks[i] != 0)
 		 {
-			RunnableTask task = _runnableTasks[i];
-			_runnableTasks[i] = NO_TASK;
-			return task;
+			Task* task = _runnableTasks[i];
+			_runnableTasks[i] = 0;
+			return RunnableTask(i, task);
 		}
 	}
 	return NO_TASK;
@@ -141,13 +141,13 @@ void TaskManager::launchIfNeeded()
 	for (uint8_t i = 0; i < _maxTasks; i++)
 	{
 		TaskConfig& entry = _tasks[i];
-		_runnableTasks[i] = NO_TASK;
+		_runnableTasks[i] = 0;
 		if (entry.task != 0)
 		{
 			if (entry.when <= _milliseconds)
 			{
 				// Add this task to executable tasks
-				_runnableTasks[i] = RunnableTask(i, entry.task);
+				_runnableTasks[i] = entry.task;
 				// Remove task if one-shot or last shot
 				if (entry.period == 0 || entry.times == 1)
 				{
