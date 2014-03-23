@@ -44,11 +44,11 @@ private:
 class TaskManager
 {
 public:
-	TaskManager():_maxTasks(MAX_TASKS), _numTasks(0) {}
+	TaskManager():_maxTasks(MAX_TASKS) {}
 	~TaskManager();
 
-	int8_t addTask(TaskConfig& config);
-	int8_t updateTask(int8_t id, TaskConfig& config);
+	int8_t addTask(const TaskConfig& config);
+	int8_t updateTask(int8_t id, const TaskConfig& config);
 	int8_t removeTask(int8_t id);
 
 	uint32_t milliseconds();
@@ -67,7 +67,6 @@ private:
 	RunnableTask nextRunnableTask();
 
 	const uint8_t _maxTasks;
-	uint8_t _numTasks;
 	TaskConfig _tasks[MAX_TASKS];
 	Task* _runnableTasks[MAX_TASKS];
 

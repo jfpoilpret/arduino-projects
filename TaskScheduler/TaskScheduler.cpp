@@ -25,8 +25,7 @@ public:
 	{
 		_state = (_state == LOW ? HIGH : LOW);
 		digitalWrite(_pin, _state);
-		TaskConfig config = TaskConfig(*this, _nextTime);
-		manager.addTask(config);
+		manager.addTask(TaskConfig(*this, _nextTime));
 		--_loop;
 		if (_loop == 0)
 		{
@@ -49,9 +48,8 @@ MyTask myTask;
 
 //The setup function is called once at startup of the sketch
 void setup()
- {
-	TaskConfig config = TaskConfig(myTask);
-	scheduler.addTask(config);
+{
+	scheduler.addTask(TaskConfig(myTask));
 }
 
 // The loop function is called in an endless loop

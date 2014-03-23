@@ -49,15 +49,12 @@ TaskManager::~TaskManager()
 	TIMSK2 = 0;
 }
 
-int8_t TaskManager::addTask(TaskConfig& config)
+int8_t TaskManager::addTask(const TaskConfig& config)
 {
 	if (config.task == 0)
 		return -1;
 	ClearInterrupt();
 	initTimer();
-	if (_numTasks == _maxTasks)
-		return -1;
-	++_numTasks;
 	for (int i = 0; i < _maxTasks; i++)
 	{
 		TaskConfig& entry = _tasks[i];
@@ -72,7 +69,7 @@ int8_t TaskManager::addTask(TaskConfig& config)
 	return -1;
 }
 
-int8_t TaskManager::updateTask(int8_t id, TaskConfig& config)
+int8_t TaskManager::updateTask(int8_t id, const TaskConfig& config)
 {
 	if (id < 0 || id >= _maxTasks || config.task == 0)
 		return -1;
@@ -152,7 +149,6 @@ void TaskManager::launchIfNeeded()
 				if (entry.period == 0 || entry.times == 1)
 				{
 					entry = EMPTY_TASK;
-					--_numTasks;
 				}
 				else
 				{
