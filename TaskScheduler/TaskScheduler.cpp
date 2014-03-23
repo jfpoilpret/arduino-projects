@@ -2,8 +2,7 @@
 #include "TaskScheduler.h"
 
 #define MAX_TASKS 5
-#define MAX_TIMED_TASKS 2
-#include <TimedTaskGenerator.h>
+#include <TaskManager.h>
 
 #define MAX_DELAY 2000
 #define MIN_DELAY 100
@@ -12,10 +11,9 @@
 class MyTask: public Task
 {
 public:
-	MyTask(TimedTaskGenerator& timedTaskGenerator, uint8_t pin = 13):
+	MyTask(uint8_t pin = 13):
 		_pin(pin),
 		_state(LOW),
-		_timedTaskGenerator(timedTaskGenerator),
 		_nextTime(MAX_DELAY),
 		_loop(NUM_LOOPS)
 	{
@@ -23,11 +21,12 @@ public:
 	}
 	~MyTask() {}
 
-	void execute(TaskManager& manager)
+	void execute(int8_t id, uint32_t millis, TaskManager& manager)
 	{
 		_state = (_state == LOW ? HIGH : LOW);
 		digitalWrite(_pin, _state);
-		_timedTaskGenerator.addOneShotTask(this, _nextTime);
+		TaskConfig config = TaskConfig(*this, _nextTime);
+		manager.addTask(config);
 		--_loop;
 		if (_loop == 0)
 		{
@@ -41,24 +40,22 @@ public:
 private:
 	uint8_t _pin;
 	uint8_t _state;
-	TimedTaskGenerator& _timedTaskGenerator;
 	uint32_t _nextTime;
 	uint8_t _loop;
 };
 
 TaskManager scheduler;
-TimedTaskGenerator timedTasks(scheduler, MAX_TIMED_TASKS);
-MyTask myTask(timedTasks);
+MyTask myTask;
 
 //The setup function is called once at startup of the sketch
 void setup()
-{
-//	timedTasks.addPeriodicTask(&myTask, 10000, 0);
-	timedTasks.addOneShotTask(&myTask, 0);
+ {
+	TaskConfig config = TaskConfig(myTask);
+	scheduler.addTask(config);
 }
 
 // The loop function is called in an endless loop
 void loop()
 {
-	scheduler.runAll();
+	scheduler.runTasks();
 }
