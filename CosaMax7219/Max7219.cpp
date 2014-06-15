@@ -1,17 +1,19 @@
 #include "Max7219.hh"
 
+#include <ctype.h>
+
 void Max7219Driver::transfer(uint8_t chip, uint8_t opcode, uint8_t data) {
 	if (chip < m_numChips) {
-		trace	<< PSTR("transfer(") << chip << PSTR(", ")
-				<< hex << opcode << PSTR(", ")
-				<< hex << data << PSTR(")") << endl;
+//		trace	<< PSTR("transfer(") << chip << PSTR(", ")
+//				<< hex << opcode << PSTR(", ")
+//				<< hex << data << PSTR(")") << endl;
 		m_io->begin();
+		m_io->write(opcode);
+		m_io->write(data);
 		for (uint8_t i = 0; i < chip; i++) {
 			m_io->write(NO_OP);
 			m_io->write(0x00);
 		}
-		m_io->write(opcode);
-		m_io->write(data);
 		m_io->end();
 	}
 }
@@ -69,97 +71,79 @@ static const uint8_t font[] __PROGMEM = {
 	0b00001001,	// =
 	0b11100101,	// ?
 	0b10110000,	// !
-	0b10000000	// .
+	0b10000000,	// .
+	0b00000000	// space
 };
 
 const uint8_t DIGIT_INDEX = 0;
 const uint8_t ALPHA_INDEX = 10;
 const uint8_t SPECIAL_INDEX = 10 + 26;
 
+Max7219::Max7219(Max7219Driver* driver, uint8_t chip):m_driver(driver), m_chip(chip), m_x(0) {
+	m_driver->displayTestMode(chip, false);
+	m_driver->shutdownMode(chip, true);
+	m_driver->decodeMode(chip, 0);
+	m_driver->scanLimit(chip, DIGITS - 1);
+	clear();
+}
+
 void Max7219::clear() {
-	m_driver->clear(m_chip);
+	memset(m_buffer, 0, DIGITS);
 	m_x = 0;
+	refresh();
+}
+
+void Max7219::append(uint8_t value) {
+	for (uint8_t i = 1; i < DIGITS; i++) {
+		m_buffer[DIGITS - i] = m_buffer[DIGITS - i - 1];
+	}
+	m_buffer[0] = value;
+	m_x = (m_x + 1) % 8;
+}
+
+void Max7219::refresh() {
+	uint8_t *ptr = m_buffer;
+	for (uint8_t i = 0; i < DIGITS; i++)
+		m_driver->display(m_chip, i, *ptr++);
+}
+
+static const char SPECIAL_CHARS[] = "\"`'[]|_-=?!. ";
+
+uint8_t Max7219::findFontIndex(char c) {
+	if (isalpha(c))
+		return ALPHA_INDEX + tolower(c) - 'a';
+	else if (isdigit(c))
+		return DIGIT_INDEX + c - '0';
+	else {
+		const char* special = strchr(SPECIAL_CHARS, c);
+		if (special != 0)
+			return SPECIAL_INDEX + (special - SPECIAL_CHARS);
+		return -1;
+	}
 }
 
 int Max7219::putchar(char c) {
-	int8_t index = -1;
-
-	switch (c) {
-	case '\n':
-	case '\f':
-		// clear display
+	if (m_newLine) {
 		clear();
-		return c;
-
-	case '\b':
-		// change cursor
-		if (m_x != 0) m_x--;
-		return c;
-
-	case ' ':
-		m_driver->display(m_chip, m_x, 0x00);
-		m_x = (m_x + 1) % 8;
-		return c;
-
-	// Next entries are for special characters: " ` ' [ ] | _ - = ? ! .
-	case '`':
-		index = SPECIAL_INDEX;
-		break;
-
-	case '\'':
-		index = SPECIAL_INDEX + 1;
-		break;
-
-	case '[':
-		index = SPECIAL_INDEX + 2;
-		break;
-
-	case ']':
-		index = SPECIAL_INDEX + 3;
-		break;
-
-	case '|':
-		index = SPECIAL_INDEX + 4;
-		break;
-
-	case '_':
-		index = SPECIAL_INDEX + 5;
-		break;
-
-	case '-':
-		index = SPECIAL_INDEX + 6;
-		break;
-
-	case '=':
-		index = SPECIAL_INDEX + 7;
-		break;
-
-	case '?':
-		index = SPECIAL_INDEX + 8;
-		break;
-
-	case '!':
-		index = SPECIAL_INDEX + 9;
-		break;
-
-	case '.':
-		index = SPECIAL_INDEX + 10;
-		break;
-
-	default:
-		if (isalpha(c)) {
-			index = ALPHA_INDEX + tolower(c) - 'a';
-		} else if (isdigit(c)) {
-			index = DIGIT_INDEX + c - '0';
-		}
-		break;
+		m_newLine = false;
 	}
-//		trace << PSTR("putchar(") << c << PSTR(") index = ") << index << PSTR(", m_x = ") << m_x << endl;
-	if (index >= 0) {
-		uint8_t value = pgm_read_byte(font + index);
-//			trace << PSTR("value = ") << hex << value << endl;
-		m_driver->display(m_chip, m_x, value);
-		m_x = (m_x + 1) % 8;
+	int8_t index = findFontIndex(c);
+	if (index == -1) {
+		switch (c) {
+		case '\n':
+		case '\f':
+			// clear display on next time
+			m_newLine = true;
+			break;
+
+		case '\b':
+			// change cursor
+			if (m_x != 0) m_x--;
+			break;
+		}
+	} else {
+		append(pgm_read_byte(font + index));
+		refresh();
 	}
 	return c;
 }

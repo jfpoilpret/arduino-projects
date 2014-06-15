@@ -17,21 +17,9 @@ void setup()
 	uart.begin(115200);
 	trace.begin(&uart);
 	Watchdog::begin();
-	driver.shutdownMode(0, true);
-	driver.scanLimit(0, 7);
 	driver.intensity(0, 8);
-	driver.decodeMode(0, 0);
 	driver.shutdownMode(0, false);
 	Watchdog::delay(2048);
-	driver.clear(0);
-//
-//	for (uint8_t i = 0; i < 8; i++) {
-//		for (uint8_t val = 0; val < 255; val++) {
-//			driver.display(0, i, val);
-//			Watchdog::delay(256);
-//		}
-//	}
-//	driver.clear(0);
 }
 
 const char TESTS[] = {

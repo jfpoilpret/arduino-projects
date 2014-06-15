@@ -8,11 +8,9 @@
 #ifndef MAX7219_HH_
 #define MAX7219_HH_
 
-#include <ctype.h>
 #include "Cosa/Types.h"
 #include "Cosa/SPI.hh"
 #include "Cosa/IOStream.hh"
-#include "Cosa/Trace.hh"
 
 // First impl of Max7219 driver:
 // - SPI based first
@@ -46,12 +44,6 @@ public:
 	void display(uint8_t chip, uint8_t digit, uint8_t value) {
 		if (digit > 7) digit = 7;
 		transfer(chip, DIGIT0 + digit, value);
-	}
-
-	void clear(uint8_t chip) {
-		for (uint8_t opcode = DIGIT0; opcode <= DIGIT7; opcode++) {
-			transfer(chip, opcode, 0x00);
-		}
 	}
 
 	class IO {
@@ -154,18 +146,33 @@ protected:
 	const uint8_t m_numChips;
 };
 
+//TODO handle deferred \n
+//TODO Handle special chars as \r and \b
+//TODO Handle multiple devices, in various real estates ...
+//TODO templatize? to set scanlimit
+//TODO templatize? to set chip index
+//TODO templatize? to set chips count (if several chips)
+//TODO or allow chaining displays?
+const uint8_t DIGITS = 8;
+
 class Max7219 : public IOStream::Device {
 public:
-	Max7219(Max7219Driver* driver, uint8_t chip = 0):m_driver(driver), m_chip(chip), m_x(0) {}
+	Max7219(Max7219Driver* driver, uint8_t chip = 0);
 
 	void clear();
 
 	virtual int putchar(char c);
 
 protected:
+	virtual uint8_t findFontIndex(char c);
+	void append(uint8_t value);
+	void refresh();
+
 	Max7219Driver* const m_driver;
 	uint8_t m_chip;
-    uint8_t m_x;
+	uint8_t m_x;
+	bool m_newLine;
+	uint8_t m_buffer[DIGITS];
 };
 
 #endif /* MAX7219_HH_ */
