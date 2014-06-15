@@ -19,26 +19,15 @@ void setup()
 	Watchdog::begin();
 	driver.intensity(0, 8);
 	driver.shutdownMode(0, false);
-	Watchdog::delay(2048);
+	Watchdog::delay(1);
 }
-
-const char TESTS[] = {
-		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-		'"', '`', '\'', '[', ']', '|', '_', '-', '=', '?', '!', '.'
-};
-
-const uint8_t TESTS_SIZE = (sizeof(TESTS) / sizeof(char));
 
 void loop()
 {
-	static uint8_t index = 0;
-
-	trace << TESTS[index] << endl;
-	display.putchar(TESTS[index]);
-//	out << TESTS[index];
-	index = (index + 1) % TESTS_SIZE;
-
-	Watchdog::delay(256);
+//	out << PSTR("Arduino!");
+	out << PSTR("Arduino!") << endl;
+	Watchdog::delay(512);
+//	out << PSTR("The best");
+	out << PSTR("The best") << endl;
+	Watchdog::delay(512);
 }

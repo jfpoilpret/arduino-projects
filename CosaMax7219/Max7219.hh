@@ -146,7 +146,6 @@ protected:
 	const uint8_t m_numChips;
 };
 
-//TODO handle deferred \n
 //TODO Handle special chars as \r and \b
 //TODO Handle multiple devices, in various real estates ...
 //TODO templatize? to set scanlimit

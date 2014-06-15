@@ -4,9 +4,6 @@
 
 void Max7219Driver::transfer(uint8_t chip, uint8_t opcode, uint8_t data) {
 	if (chip < m_numChips) {
-//		trace	<< PSTR("transfer(") << chip << PSTR(", ")
-//				<< hex << opcode << PSTR(", ")
-//				<< hex << data << PSTR(")") << endl;
 		m_io->begin();
 		m_io->write(opcode);
 		m_io->write(data);
@@ -107,7 +104,7 @@ void Max7219::refresh() {
 		m_driver->display(m_chip, i, *ptr++);
 }
 
-static const char SPECIAL_CHARS[] = "\"`'[]|_-=?!. ";
+static const char* SPECIAL_CHARS = "\"`'[]|_-=?!. ";
 
 uint8_t Max7219::findFontIndex(char c) {
 	if (isalpha(c))
